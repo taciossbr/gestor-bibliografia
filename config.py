@@ -1,0 +1,1 @@
+DATABASE_URL = 'gestor_bibliografico.db'
