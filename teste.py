@@ -1,5 +1,5 @@
 from gi.repository import Gtk
-from interface.gera_abnt import ABNTBibWindow as testWindow
+from interface.projetos import ListagemProjetosWindow as testWindow
 # from interface.cadastra_source import CadastroSourceWindow
 
 from api.models import Book
@@ -13,7 +13,8 @@ b = Book(id=1,
          vol=1,
          subtitle='teste',
          series='t')
-window = testWindow(b)
+# window = testWindow(b)
+window = testWindow()
 window.connect("delete-event", Gtk.main_quit)
 window.show_all()
 

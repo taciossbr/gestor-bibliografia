@@ -184,4 +184,67 @@ class ProjectDAO(DAO):
             join project_quote_source on project.id_proj = project_quote_source.id_proj
             join source on source.id_source = project_quote_source.id_source;""")
         return cursor.fetchall()
+    def get_quote(self, id_proj, id_source):
+        cursor = self._conn.cursor()
+
+        cursor.execute("""
+            select nome, title, pg_start, pg_end from project_quote_source
+            join source on source.id_source = project_quote_source.id_source
+            join project on project.id_proj = project_quote_source.id_proj
+            where project.id_proj = :id_proj and source.id_source = :id_source;
+            """, {'id_proj': id_proj, 'id_source': id_source})
+        return cursor.fetchone()
+
+    def edit_quote(self, id_proj, id_source, pg_start, pg_end):
+        cursor = self._conn.cursor()
+
+        cursor.execute(f"""
+            update project_quote_source
+            set pg_start = ?, pg_end = ?
+            where id_proj = ? and id_source =?
+            """, (pg_start, pg_end, id_proj, id_source))
         
+        self._conn.commit()
+
+    def alter_quote(self, id_proj, id_source, pg_start, pg_end):
+        cursor = self._conn.cursor()
+
+        cursor.execute("""
+            select nome, title, pg_start, pg_end from project_quote_source
+            join source on source.id_source = project_quote_source.id_source
+            join project on project.id_proj = project_quote_source.id_proj
+            where project.id_proj = :id_proj and source.id_source = :id_source;
+            """, {'id_proj': id_proj, 'id_source': id_source})
+        return cursor.fetchone()
+    def project_quotes(self, id):
+        cursor = self._conn.cursor()
+
+        cursor.execute("""
+            select source.id_source, title, subtitle, 'site', pg_start, pg_end from project_quote_source
+            join source on source.id_source = project_quote_source.id_source
+            join site on source.id_source = site.id_source
+            where id_proj = :id
+            union
+
+            select source.id_source, title, subtitle, 'book', pg_start, pg_end from project_quote_source
+            join source on source.id_source = project_quote_source.id_source
+            join book on source.id_source = book.id_source
+            where id_proj = :id
+
+            union
+
+            select source.id_source, title, subtitle, 'article', pg_start, pg_end from project_quote_source
+            join source on source.id_source = project_quote_source.id_source
+            join article on source.id_source = article.id_source
+            where id_proj = :id;""", {'id':id})
+        return cursor.fetchall()
+
+    def get(self, id):
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            SELECT * FROM project
+            WHERE id_proj = ?;""", (id, ))
+        r = cursor.fetchone()
+        if r:
+            return Project(*r)
+        return None
