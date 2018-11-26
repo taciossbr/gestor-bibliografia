@@ -7,7 +7,7 @@ from api import make_connection
 from api.dao import ProjectDAO, BookDAO, ArticleDAO, SiteDAO
 
 class CadastroQuoteWindow(Gtk.Window):
-    def __init__(self):
+    def __init__(self, id_proj=0):
         Gtk.Window.__init__(self, title='Cadastro de Projetos')
         self.set_border_width(10)
         self.set_default_size(400, 200)
@@ -20,6 +20,9 @@ class CadastroQuoteWindow(Gtk.Window):
             proj_list_store.append([projeto.id, projeto.nome])
         self.projeto_combo = Gtk.ComboBox.new_with_model_and_entry(proj_list_store)
         self.projeto_combo.set_entry_text_column(1)
+        self.projeto_combo.set_active(id_proj-1)
+        if id_proj:
+            self.projeto_combo.set_sensitive(False)
         self.layout.add(self.projeto_combo)
 
         type_source_ls = Gtk.ListStore(int, str)

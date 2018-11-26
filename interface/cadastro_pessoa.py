@@ -68,10 +68,3 @@ class CadastraPessoaWindow(Gtk.Window):
         self.personDAO.adiciona_pessoa(pn, nm, un, sf)
 
 
-
-
-window = CadastraPessoaWindow()
-window.connect("delete-event", Gtk.main_quit)
-window.show_all()
-
-Gtk.main()

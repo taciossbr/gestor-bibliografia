@@ -7,10 +7,59 @@ from gi.repository import Gtk
 from api import make_connection
 from api.dao import ProjectDAO
 
+from interface.cadastra_quote import CadastroQuoteWindow
+from interface.cadastra_source import CadastroSourceWindow
+from interface.lista_source import ListagemSourceWindow
+from interface.cadastro_pessoa import CadastraPessoaWindow
+from interface.lista_pessoa import ListagemPessoasWindow
+
 class ListagemProjetosWindow(Gtk.Window):
     def __init__(self):
         Gtk.ScrolledWindow.__init__(self, title="Listagem Projetos")
-        self.set_border_width(2)
+        # self.set_border_width(2)
+
+
+        main_menu_bar = Gtk.MenuBar()
+
+        # Drop Down
+        proj_new = Gtk.MenuItem("Novo Projeto")
+        proj_new.connect('activate', self.new)
+        main_menu_bar.append(proj_new)
+
+        source_menu = Gtk.Menu()
+        source_dropdow = Gtk.MenuItem("Fontes")
+
+        source_new = Gtk.MenuItem("Novo")
+        source_new.connect('activate', self.new_source)
+        source_list = Gtk.MenuItem("Listagem")
+        source_list.connect('activate', self.list_source)
+        
+        source_dropdow.set_submenu(source_menu)
+        source_menu.append(source_new)
+        source_menu.append(source_list)
+
+        main_menu_bar.append(source_dropdow)
+
+        autores_menu = Gtk.Menu()
+        autores_dropdow = Gtk.MenuItem("Autores")
+
+        autores_new = Gtk.MenuItem("Novo")
+        autores_new.connect('activate', self.new_autor)
+        autores_list = Gtk.MenuItem("Listagem")
+        autores_list.connect('activate', self.list_autor)
+        
+        autores_dropdow.set_submenu(autores_menu)
+        autores_menu.append(autores_new)
+        autores_menu.append(autores_list)
+
+        main_menu_bar.append(autores_dropdow)
+
+
+
+        b1 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        b1.add(main_menu_bar)
+
+
         
         self.layout = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.layout.set_spacing(6)
@@ -54,17 +103,74 @@ class ListagemProjetosWindow(Gtk.Window):
         self.btn_quotes = Gtk.Button()
         self.btn_quotes.connect("clicked", self.show_quotes)
         self.btn_quotes.set_visible(False)
-        # panel.add(self.lbl_nome)
+        # self.btn_new = Gtk.Button()
+        # self.btn_new.connect("clicked", self.new)
+        # self.btn_new.set_label("Novo Projeto")
+        # self.btn_new.show()
+        self.btn_quote = Gtk.Button()
+        self.btn_quote.set_label("Cadastrar Citação")
+        self.btn_quote.connect("clicked", self.new_quote)
+        self.btn_quote.show()
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.set_spacing(6)
         box.add(self.lbl_nome)
         box.add(self.btn_quotes)
+        # box.add(self.btn_new)
+        box.add(self.btn_quote)
         panel.add(box)
 
         self.layout.add(panel)
 
+        b1.add(self.layout)
+        self.add(b1)
 
-        self.add(self.layout)
+    def new_quote(self, widget):
+        model, t = self.ptv.get_selection().get_selected()
+        if t is not None:
+            w = CadastroQuoteWindow(model[t][0])
+            w.show_all()
+            w.connect("destroy", lambda w: self.show_all())
+            self.hide()
+    def list_source(self, widget):
+        w = ListagemSourceWindow()
+        w.show_all()
+        self.hide()
+        w.connect('destroy', lambda w: self.show_all())
+
+    def new_source(self, widget):
+        w = CadastroSourceWindow()
+        w.show_all()
+        self.hide()
+        w.connect('destroy', lambda w: self.show_all())
+    
+    def list_autor(self, widget):
+        w = ListagemPessoasWindow()
+        w.show_all()
+        self.hide()
+        w.connect('destroy', lambda w: self.show_all())
+
+    def new_autor(self, widget):
+        w = CadastraPessoaWindow()
+        w.show_all()
+        self.hide()
+        w.connect('destroy', lambda w: self.show_all())
+
+    def new(self, widget):
+        w = CadastroProjectWindow()
+        w.show_all()
+        self.hide()
+        w.connect('destroy', self.atualizar)
+    
+    def atualizar(self, widget):
+        print('atualizar')
+        pls = Gtk.ListStore(int, str)
+
+        for p in self.dao.todos_projetos():
+            pls.append([p.id, p.nome])
+        self.ptv.set_model(pls)
+        self.ptv.show_all()
+        # self.ptv.re
+        self.show()
 
     def show_quotes(self, widget):
         # print('clicked')
@@ -74,7 +180,7 @@ class ListagemProjetosWindow(Gtk.Window):
             w = ListagemQuotesProjeto(project)
             w.show_all()
             w.connect("delete-event", lambda s, w: self.show_all())
-        self.hide()
+            self.hide()
 
     def det_proj(self, widget):
         # print('clicked')
@@ -87,7 +193,7 @@ class ListagemProjetosWindow(Gtk.Window):
             self.btn_quotes.set_label(f'Ver {f"{n} " if n else ""}{"citacoes" if n else "citação"}')
 
 
-class CadastroProjectDAO(Gtk.Window):
+class CadastroProjectWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title='Cadastro de Projetos')
         self.dao = ProjectDAO(make_connection())
