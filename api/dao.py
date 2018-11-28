@@ -88,6 +88,17 @@ class ArticleDAO(SourceDAO):
         # for row in cursor.fetchall():
         #     print(row)
 
+    def get(self, id):
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            SELECT src.id_source, src.date, src.title, src.subtitle, src.local,
+                a.doi, a.journal, a.vol_journal, a.fascicle
+            FROM source as src
+            JOIN article as a ON src.id_source = a.id_source
+            WHERE a.id_source = ?;""", (id, ))
+        
+        return Article(*cursor.fetchone())
+
     def adiciona_article(self, date, title, subtitle, local,
                          doi, journal, vol_journal, fascicle):
         id = self._add_source(date, title, subtitle, local)
@@ -113,6 +124,17 @@ class SiteDAO(SourceDAO):
 
         return [Site(*row) for row in cursor.fetchall()]
 
+    def get(self, id):
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            SELECT src.id_source, src.date, src.title, src.subtitle, src.local,
+                s.link, s.dt_access
+            FROM source as src
+            JOIN site as s ON src.id_source = s.id_source
+            WHERE s.id_source = ?;""", (id, ))
+        
+        return Site(*cursor.fetchone())
+
     def adiciona_site(self, date, title, subtitle, local,
                          link, dt_access):
         id = self._add_source(date, title, subtitle, local)
@@ -137,6 +159,17 @@ class BookDAO(SourceDAO):
             JOIN book as b ON src.id_source = b.id_source;""")
 
         return [Book(*row) for row in cursor.fetchall()]
+
+    def get(self, id):
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            SELECT src.id_source, src.date, src.title,  src.subtitle, src.local,
+                b.isbn, b.publisher, b.series_book,  b.edition_book, b.vol_book
+            FROM source as src
+            JOIN book as b ON src.id_source = b.id_source
+            WHERE b.id_source = ?;""", (id, ))
+        
+        return Book(*cursor.fetchone())
 
     def adiciona_book(self, date, title, subtitle, local,
                          isbn, publisher, series, edition, vol):

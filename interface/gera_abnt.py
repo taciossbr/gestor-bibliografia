@@ -14,7 +14,8 @@ class ABNTBibWindow(Gtk.Window):
         Gtk.Window.__init__(self, title="Referencias")
         self.set_border_width(10)
         layout = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
+        if not isinstance(sources, list):
+            sources = [sources]
 
         s = ''
         for source in sources:
