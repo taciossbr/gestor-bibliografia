@@ -34,7 +34,11 @@ class ListagemPessoasWindow(Gtk.Window):
             ptv.append_column(col)
             col.set_sort_column_id(i)
 
-        layout.add(ptv)
+        sclwin = Gtk.ScrolledWindow()
+        sclwin.add(ptv)
+        sclwin.set_min_content_height(200)
+        sclwin.set_min_content_width(450)
+        layout.add(sclwin)
 
 
         print(self.dao.todas_pessoas())

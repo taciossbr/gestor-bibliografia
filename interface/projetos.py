@@ -12,6 +12,7 @@ from interface.cadastra_source import CadastroSourceWindow
 from interface.lista_source import ListagemSourceWindow
 from interface.cadastro_pessoa import CadastraPessoaWindow
 from interface.lista_pessoa import ListagemPessoasWindow
+from interface.gera_abnt import ABNTBibWindow
 
 class ListagemProjetosWindow(Gtk.Window):
     def __init__(self):
@@ -22,8 +23,10 @@ class ListagemProjetosWindow(Gtk.Window):
         main_menu_bar = Gtk.MenuBar()
 
         # Drop Down
+        proj_menu = Gtk.Menu()
         proj_new = Gtk.MenuItem("Novo Projeto")
         proj_new.connect('activate', self.new)
+        proj_new.set_submenu(proj_menu)
         main_menu_bar.append(proj_new)
 
         source_menu = Gtk.Menu()
@@ -117,12 +120,33 @@ class ListagemProjetosWindow(Gtk.Window):
         box.add(self.btn_quotes)
         # box.add(self.btn_new)
         box.add(self.btn_quote)
+
+        self.btn_refs = Gtk.Button()
+        self.btn_refs.set_label("Gerar Referências")
+        self.btn_refs.connect("clicked", self.show_refs)
+        self.btn_refs.show()
+        box.add(self.btn_refs)
+
         panel.add(box)
 
         self.layout.add(panel)
 
         b1.add(self.layout)
         self.add(b1)
+
+    def show_refs(self, widget):
+        model, t = self.ptv.get_selection().get_selected()
+        if t is not None:
+            print(int(model[t][0]))
+            # return
+            sources = self.dao.get_refs(int(model[t][0]))
+            # print(sources)
+            w = ABNTBibWindow(sources)
+            # w = CadastroQuoteWindow(model[t][0])
+            w.show_all()
+            w.connect("destroy", lambda w: self.show_all())
+            self.hide()
+
 
     def new_quote(self, widget):
         model, t = self.ptv.get_selection().get_selected()
@@ -277,7 +301,6 @@ class ListagemQuotesProjeto(Gtk.Window):
         self.pg_end.set_size_request(50, 20)
         self.pg_end.set_editable(False)
         self.pg_end.set_width_chars(3)
-        self.pg_end.set_text('twer')
         panel.attach(self.pg_end, 1, 1, 1, 1)
         layout.add(panel)
 

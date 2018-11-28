@@ -64,6 +64,15 @@ class SourceDAO(DAO):
             (?, ?, ?, ?)""", (date, title, subtitle, local))
         self._conn.commit()
         return cursor.lastrowid
+    
+    def autores(self, id):
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            select person.id_person, firstname, middlename, lastname, suffix from person_contribute_source
+            join person on person.id_person = person_contribute_source.id_person
+            where type = 'autor' and id_source = ?;""", (id, ))
+
+        return [Person(*row) for row in cursor.fetchall()]
 
 class ArticleDAO(SourceDAO):
 
@@ -73,7 +82,7 @@ class ArticleDAO(SourceDAO):
             SELECT src.id_source, src.date, src.title, src.subtitle, src.local,
                 a.doi, a.journal, a.vol_journal, a.fascicle
             FROM source as src
-			JOIN article as a ON src.id_source = a.id_source;""")
+            JOIN article as a ON src.id_source = a.id_source;""")
         
         return [Article(*row) for row in cursor.fetchall()]
         # for row in cursor.fetchall():
@@ -100,7 +109,7 @@ class SiteDAO(SourceDAO):
             SELECT src.id_source, src.date, src.title, src.subtitle, src.local,
                 s.link, s.dt_access
             FROM source as src
-			JOIN site as s ON src.id_source = s.id_source;""")
+            JOIN site as s ON src.id_source = s.id_source;""")
 
         return [Site(*row) for row in cursor.fetchall()]
 
@@ -125,7 +134,7 @@ class BookDAO(SourceDAO):
             SELECT src.id_source, src.date, src.title,  src.subtitle, src.local,
                 b.isbn, b.publisher, b.series_book,  b.edition_book, b.vol_book
             FROM source as src
-			JOIN book as b ON src.id_source = b.id_source;""")
+            JOIN book as b ON src.id_source = b.id_source;""")
 
         return [Book(*row) for row in cursor.fetchall()]
 
@@ -143,14 +152,7 @@ class BookDAO(SourceDAO):
         return Book(cursor.lastrowid, date, title, subtitle, local,
                     isbn, publisher, series, edition, vol)
 
-    def autores(self, id):
-        cursor = self._conn.cursor()
-        cursor.execute("""
-            select person.id_person, firstname, middlename, lastname, suffix from person_contribute_source
-            join person on person.id_person = person_contribute_source.id_person
-            where type = 'autor' and id_source = ?;""", (id, ))
-
-        return [Person(*row) for row in cursor.fetchall()]
+    
 
 
 class ProjectDAO(DAO):
@@ -161,6 +163,43 @@ class ProjectDAO(DAO):
             (?);""", tuple([nome]))
         self._conn.commit()
         return Project(id=cursor.lastrowid, nome=nome)
+    
+    def get_refs(self, id_proj):
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            SELECT src.id_source, src.date, src.title, src.subtitle, src.local,
+                a.doi, a.journal, a.vol_journal, a.fascicle
+            FROM source as src
+            JOIN article as a ON src.id_source = a.id_source
+            JOIN project_quote_source on project_quote_source.id_source = src.id_source
+            WHERE id_proj = ?;""", (id_proj, ))
+        
+        l = [Article(*row) for row in cursor.fetchall()]
+
+        cursor.execute("""
+            SELECT src.id_source, src.date, src.title,  src.subtitle, src.local,
+                b.isbn, b.publisher, b.series_book,  b.edition_book, b.vol_book
+            FROM source as src
+            JOIN book as b ON src.id_source = b.id_source
+            JOIN project_quote_source on project_quote_source.id_source = src.id_source
+            WHERE id_proj = ?;""", (id_proj, ))
+
+        l += [Book(*row) for row in cursor.fetchall()]
+
+        cursor.execute("""
+            SELECT src.id_source, src.date, src.title, src.subtitle, src.local,
+                s.link, s.dt_access
+            FROM source as src
+            JOIN site as s ON src.id_source = s.id_source
+            JOIN project_quote_source on project_quote_source.id_source = src.id_source
+            WHERE id_proj = ?;""", (id_proj, ))
+        
+        l += [Site(*row) for row in cursor.fetchall()]
+
+        return l
+
+
+
     def todos_projetos(self):
         cursor = self._conn.cursor()
         cursor.execute("""
